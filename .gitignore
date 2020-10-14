@@ -1,0 +1,6 @@
+.projectile
+.rc.lua
+.trash/
+
+# ignored because it is modified constantly by wpgtk
+colors.lua
