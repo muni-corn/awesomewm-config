@@ -25,6 +25,11 @@ xrdb -load ~/.cache/wal/colors.Xresources
 HELLO_LOCK_FILE=/tmp/muse-hello.lock
 
 if [ ! -e "$HELLO_LOCK_FILE" ]; then
+    # applications to only autostart once
+    for file in $HOME/.config/autostart/*; do
+        gtk-launch $file & disown
+    done
+
     canberra-gtk-play --id=desktop-login & disown
     touch "$HELLO_LOCK_FILE"
 fi
