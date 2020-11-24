@@ -26,7 +26,7 @@ apps.pavucontrol = function ()
     helpers.run_or_focus({class = 'Pavucontrol'}, true, "pavucontrol")
 end
 apps.editor = function ()
-    helpers.run_or_focus({instance = 'editor'}, false, user.editor)
+    awful.spawn.with_shell(user.editor)
 end
 apps.notebook = function()
     awful.spawn.with_shell(user.terminal.." --class notebook -T 'Notebook' -e ranger "..os.getenv("HOME").."/Notebook")
@@ -42,8 +42,8 @@ end
 apps.toggle_picom = function ()
     awful.spawn.with_shell(os.getenv("HOME").."/.config/toggle_picom.sh")
 end
-apps.toggle_redshift = function ()
-    awful.spawn.with_shell(os.getenv("HOME").."/.config/toggle_redshift.sh")
+apps.toggle_gammastep = function ()
+    awful.spawn.with_shell(os.getenv("HOME").."/.config/toggle_gammastep.sh")
 end
 
 apps.record_screen = function ()
@@ -51,11 +51,11 @@ apps.record_screen = function ()
 end
 
 apps.music = function ()
-    helpers.scratchpad({instance = "music"}, user.music_client)
+    helpers.run_or_focus({instance = "music"}, false, user.music_client)
 end
 
 apps.ponies = function ()
-    helpers.run_or_focus({instance = 'ponies'}, true, user.file_manager.." "..os.getenv("HOME").."/Videos/tv/My_Little_Pony:_Friendship_Is_Magic_\\(2010\\)")
+    helpers.run_or_focus({instance = 'ponies'}, true, user.file_manager.." "..os.getenv("HOME")..[[/Videos/tv/My\ Little\ Pony:\ Friendship\ Is\ Magic\ \(2010\)]])
 end
 
 apps.process_monitor = function ()
@@ -96,7 +96,7 @@ function apps.screenshot(action, delay)
     -- Screenshot capturing actions
     local cmd
     local timestamp = os.date("%Y%m%d-%H%M%S")
-    local filename = user.dirs.screenshots.."/"..timestamp..".png"
+    local filename = user.dirs.screenshots..timestamp..".png"
     local maim_args = "-u -b 3 -m 5"
 
     local prefix
@@ -107,19 +107,22 @@ function apps.screenshot(action, delay)
     end
 
     -- Configure action buttons for the notification
-    -- TODO Possible to do with 4.3
-    local screenshot_open = function()
-        awful.spawn.with_shell("cd "..user.dirs.screenshots.." && sxiv (ls -t)")
-    end
-    local screenshot_copy = function()
+    local screenshot_open = naughty.action { name = "Open" }
+    local screenshot_copy = naughty.action { name = "Copy" }
+    local screenshot_edit = naughty.action { name = "Edit" }
+    local screenshot_delete = naughty.action { name = "Delete" }
+    screenshot_open:connect_signal('invoked', function()
+        awful.spawn.with_shell("cd "..user.dirs.screenshots.." && sxiv $(ls -t)")
+    end)
+    screenshot_copy:connect_signal('invoked', function()
         awful.spawn.with_shell("xclip -selection clipboard -t image/png "..filename.." &>/dev/null")
-    end
-    local screenshot_edit = function()
+    end)
+    screenshot_edit:connect_signal('invoked', function()
         awful.spawn.with_shell("gimp "..filename.." >/dev/null")
-    end
-    local screenshot_delete = function()
+    end)
+    screenshot_delete:connect_signal('invoked', function()
         awful.spawn.with_shell("rm "..filename)
-    end
+    end)
 
     if action == "full" then
         cmd = prefix.."maim "..maim_args.." "..filename
@@ -128,10 +131,10 @@ function apps.screenshot(action, delay)
                 title = "Screenshot saved",
                 text = "Your screenshot was saved as "..filename,
                 actions = { 
-                    ['Open'] = screenshot_open, 
-                    ['Copy'] = screenshot_copy, 
-                    ['Edit'] = screenshot_edit, 
-                    ['Delete'] = screenshot_delete 
+                    screenshot_open, 
+                    screenshot_copy, 
+                    screenshot_edit, 
+                    screenshot_delete 
                 },
                 app_name = screenshot_notification_app_name,
             })

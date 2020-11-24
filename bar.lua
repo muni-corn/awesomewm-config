@@ -87,7 +87,6 @@ awful.screen.connect_for_each_screen(function(s)
     s.dock = awful.popup({
         -- Size is dynamic, no need to set it here
         visible = false,
-        bg = "#000000c0",
         ontop = true,
         -- type = "dock",
         placement = dock_placement,
@@ -108,7 +107,7 @@ awful.screen.connect_for_each_screen(function(s)
 
     -- Keep dock activator below fullscreen clients
     local function no_dock_activator_ontop(c)
-        if not s then 
+       if not s then 
             return
         elseif c.fullscreen and s.dock_activator then
             s.dock_activator.ontop = false
@@ -137,9 +136,3 @@ awesome.connect_signal("elemental::dismiss", function()
     local s = mouse.screen
     s.dock.visible = false
 end)
-
--- Every bar theme should provide these fuctions
-function wibars_toggle()
-    local s = awful.screen.focused()
-    s.dock.visible = not s.dock.visible
-end

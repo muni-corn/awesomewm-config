@@ -3,6 +3,7 @@ local gears = require("gears")
 local xresources = require("beautiful.xresources")
 local dpi = xresources.apply_dpi
 local gfs = require("gears.filesystem")
+local surface = require("gears.surface")
 
 local helpers = require("helpers")
 
@@ -46,7 +47,6 @@ theme.border_focus  = colors.background
 theme.border_radius = dpi(12)
 
 -- Titlebars
--- (Titlebar items can be customized in titlebars.lua)
 theme.titlebars_enabled = true
 theme.titlebar_size = dpi(32)
 theme.titlebar_title_enabled = true
@@ -58,14 +58,11 @@ theme.titlebar_fg_focus = theme.fg
 theme.titlebar_fg_normal = theme.fg_unfocused
 
 -- Notifications
--- ============================
--- Note: Some of these options are ignored by my custom
--- notification widget_template
--- ============================
--- Position: bottom_left, bottom_right, bottom_middle, top_left, top_right, top_middle
 theme.notification_font = theme.font
 theme.notification_bg = theme.bg
 theme.notification_fg = theme.fg
+theme.notification_crit_bg = theme.bg_urgent
+theme.notification_fg = theme.fg_urgent
 theme.notification_border_width = theme.border_width
 theme.notification_border_color = theme.border_color
 theme.notification_margin = dpi(16)
@@ -103,33 +100,23 @@ theme.separator_fg = colors.color8
 
 theme.prefix_fg = colors.color8
 
- --There are other variable sets
- --overriding the default one when
- --defined, the sets are:
- --taglist_[bg|fg]_[focus|urgent|occupied|empty|volatile]
- --tasklist_[bg|fg]_[focus|urgent]
- --titlebar_[bg|fg]_[normal|focus]
- --tooltip_[font|opacity|fg_color|bg_color|border_width|border_color]
- --mouse_finder_[color|timeout|animate_timeout|radius|factor]
- --prompt_[fg|bg|fg_cursor|bg_cursor|font]
- --hotkeys_[bg|fg|border_width|border_color|shape|opacity|modifiers_fg|label_bg|label_fg|group_margin|font|description_font]
- --Example:
- theme.hotkeys_bg = theme.bg
- theme.hotkeys_fg = theme.fg
- theme.hotkeys_modifiers_fg = colors.color14
- theme.hotkeys_font = theme.font
- theme.hotkeys_description_font = "sans 8"
- theme.hotkeys_group_margin = dpi(16)
+-- Hotkeys popup
+theme.hotkeys_bg = theme.bg
+theme.hotkeys_fg = theme.fg
+theme.hotkeys_modifiers_fg = colors.color14
+theme.hotkeys_font = theme.font
+theme.hotkeys_description_font = "sans 8"
+theme.hotkeys_group_margin = dpi(16)
 
  --Tasklist
 theme.tasklist_font = theme.font
 theme.tasklist_disable_icon = false
 theme.tasklist_plain_task_name = true
-theme.tasklist_bg_normal = "#ff000000"
+theme.tasklist_bg_normal = theme.bg
 theme.tasklist_fg_normal = colors.active
 theme.tasklist_bg_focus = theme.fg .. "20"
 theme.tasklist_fg_focus = colors.fg
-theme.tasklist_bg_minimize = colors.transparent
+theme.tasklist_bg_minimize = theme.transparent
 theme.tasklist_fg_minimize = colors.active
 theme.tasklist_font_minimized = "sans italic 11"
 theme.tasklist_bg_urgent = "#ffaa00"

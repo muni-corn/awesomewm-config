@@ -19,22 +19,22 @@ function decorations.enable_rounding()
             end
         end)
 
-        -- Fullscreen and maximized clients should not have rounded corners
-        local function no_round_corners (c)
-            if c.fullscreen or c.maximized then
+        beautiful.snap_shape = helpers.rrect(beautiful.border_radius * 2)
+    else
+        beautiful.snap_shape = gears.shape.rectangle
+    end
+
+    -- No rounded corners if there is only one client (thanks, u/Imtechbum :))
+    screen.connect_signal("arrange", function (s)
+        local only_one = #s.tiled_clients == 1
+        for _, c in pairs(s.tiled_clients) do
+            if only_one or c.maximized or c.fullscreen then
                 c.shape = gears.shape.rectangle
             else
                 c.shape = helpers.rrect(beautiful.border_radius)
             end
         end
-
-        client.connect_signal("property::fullscreen", no_round_corners)
-        client.connect_signal("property::maximized", no_round_corners)
-
-        beautiful.snap_shape = helpers.rrect(beautiful.border_radius * 2)
-    else
-        beautiful.snap_shape = gears.shape.rectangle
-    end
+    end)
 end
 
 local button_commands = {
@@ -64,10 +64,10 @@ decorations.button = function (c, shape, color, unfocused_color, hover_color, si
         widget = wibox.container.margin(),
     }
     button_widget:buttons(gears.table.join(
-        awful.button({ }, 1, function ()
-            button_commands[cmd].fun(c)
-        end)
-    ))
+            awful.button({ }, 1, function ()
+                button_commands[cmd].fun(c)
+            end)
+        ))
 
     local p = button_commands[cmd].track_property
     -- Track client property if needed

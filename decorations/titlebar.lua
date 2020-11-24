@@ -23,6 +23,17 @@ client.connect_signal("request::titlebars", function(c)
     }) : setup {
         {
             helpers.horizontal_pad(gen_button_margin),
+            -- {
+            --     awful.titlebar.widget.iconwidget(c),
+            --     forced_height = dpi(20),
+            --     forced_width = dpi(20) + gen_button_margin*2,
+            --     left = gen_button_margin,
+            --     right = gen_button_margin,
+            --     top = dpi(6),
+            --     bottom = 0,
+            --     widget = wibox.container.margin,
+            --     opacity = 0.75,
+            -- },
             decorations.button(c, gen_button_shape, colors.color4, gen_button_color_unfocused, colors.color12, gen_button_size, gen_button_margin, "floating"),
             layout = wibox.layout.fixed.horizontal
         },

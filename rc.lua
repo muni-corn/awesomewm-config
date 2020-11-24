@@ -28,30 +28,30 @@ require("awful.autofocus")
 awful.spawn.with_shell(os.getenv("HOME") .. "/.config/wpg/wp_init.sh")
 awful.spawn.with_shell(os.getenv("HOME") .. "/.config/awesome/autostart.sh")
 
--- {{{ Error handling
--- Check if awesome encountered an error during startup and fell back to
--- another config (This code will only ever execute for the fallback config)
-if awesome.startup_errors then
-    naughty.notify({ preset = naughty.config.presets.critical,
-                     title = "Oops, there were errors during startup!",
-                     text = awesome.startup_errors })
-end
+-- -- {{{ Error handling
+-- -- Check if awesome encountered an error during startup and fell back to
+-- -- another config (This code will only ever execute for the fallback config)
+-- if awesome.startup_errors then
+--     naughty.notify({ preset = naughty.config.presets.critical,
+--                      title = "Oops, there were errors during startup!",
+--                      text = awesome.startup_errors })
+-- end
 
--- Handle runtime errors after startup
-do
-    local in_error = false
-    awesome.connect_signal("debug::error", function (err)
-        -- Make sure we don't go into an endless error loop
-        if in_error then return end
-        in_error = true
+-- -- Handle runtime errors after startup
+-- do
+--     local in_error = false
+--     awesome.connect_signal("debug::error", function (err)
+--         -- Make sure we don't go into an endless error loop
+--         if in_error then return end
+--         in_error = true
 
-        naughty.notify({ preset = naughty.config.presets.critical,
-                         title = "Oops, an error happened!",
-                         text = tostring(err) })
-        in_error = false
-    end)
-end
--- }}}
+--         naughty.notify({ preset = naughty.config.presets.critical,
+--                          title = "Oops, an error happened!",
+--                          text = tostring(err) })
+--         in_error = false
+--     end)
+-- end
+-- -- }}}
 
 -- {{{ Variable definitions
 -- Init theme variables
@@ -86,7 +86,7 @@ require("bar")
 require("elemental.exit")
 
 -- Table of layouts to cover with awful.layout.inc, order matters.
-awful.layout.layouts = {
+awful.layout.append_default_layouts {
     awful.layout.suit.tile,
     awful.layout.suit.spiral.dwindle,
     awful.layout.suit.max,
@@ -95,7 +95,7 @@ awful.layout.layouts = {
 
 local function set_wallpaper(s)
     -- Wallpaper
-    awful.spawn.easy_async_with_shell('wpg -c', function(stdout, _, __, ___) 
+    awful.spawn.easy_async_with_shell('wpg -c', function(stdout, _, __, ___)
         local wallpaper = os.getenv("HOME") .. "/.config/wpg/wallpapers/" .. (stdout:match "^%s*(.-)%s*$")
 
         gears.wallpaper.maximized(wallpaper, s, false)
@@ -112,6 +112,10 @@ awful.screen.connect_for_each_screen(function(s)
 
     -- Each screen has its own tag table.
     awful.tag({ "1", "2", "3", "4", "5", "6", "7", "8", "9", "•" }, s, awful.layout.layouts[1])
+
+    for _,t in ipairs(s.tags) do
+        t.gap_single_client = false
+    end
 end)
 -- }}}
 
@@ -185,15 +189,20 @@ client.connect_signal("manage", function (c)
         -- Prevent clients from being unreachable after screen count changes.
         awful.placement.no_offscreen(c)
     end
+
+    -- don't let any clients start maximized (confusing with
+    -- gap_single_client = false
+    c.maximized = false
+
 end)
 
--- TODO Add a titlebar if titlebars_enabled is set to true in the rules.
-
--- Enable sloppy focus, so that focus follows mouse.
 client.connect_signal("mouse::enter", function(c)
-    c:emit_signal("request::activate", "mouse_enter", {raise = false})
+    if awful.layout.get(c.screen) ~= awful.layout.suit.magnifier
+        and awful.client.focus.filter(c) then
+        client.focus = c
+    end
 end)
 
-client.connect_signal("focus", function(c) c.border_color = beautiful.border_focus end)
-client.connect_signal("unfocus", function(c) c.border_color = beautiful.border_normal end)
+-- client.connect_signal("focus", function(c) c.border_color = beautiful.border_focus end)
+-- client.connect_signal("unfocus", function(c) c.border_color = beautiful.border_normal end)
 -- }}}

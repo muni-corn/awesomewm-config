@@ -29,13 +29,6 @@ local day_of_the_week = wibox.widget {
     layout = wibox.layout.align.horizontal
 }
 
-local search_icon = wibox.widget {
-    font = "Material Design Icons 10",
-    align = "center",
-    valign = "center",
-    widget = wibox.widget.textbox()
-}
-
 -- Create the calendar_drawer
 calendar_drawer = wibox({visible = false, ontop = true, screen = screen.primary})
 calendar_drawer.fg = beautiful.calendar_drawer_fg or beautiful.wibar_fg or "#FFFFFF"

@@ -284,9 +284,9 @@ keys.globalkeys = gears.table.join(
     awful.key({ superkey, shiftkey }, "p", apps.ponies,
         {description = "ponies", group = "apps"}),
 
-    -- redshift toggle
-    awful.key({ superkey, ctrlkey }, "r", apps.toggle_redshift,
-        {description = "toggle redshift", group = "apps"}),
+    -- gammastep toggle
+    awful.key({ superkey, ctrlkey }, "r", apps.toggle_gammastep,
+        {description = "toggle night display", group = "apps"}),
 
     -- launch qalc in terminal
     awful.key({ superkey }, "c", apps.calculator,
@@ -316,12 +316,12 @@ keys.globalkeys = gears.table.join(
     -- Rofi shortcuts {{{
     awful.key({ superkey }, "a",
         function()
-            awful.spawn.with_shell("rofi -show drun -config ~/.config/rofi/apps_config.rasi")
+            awful.spawn("rofi -show drun -config "..os.getenv("HOME").."/.config/rofi/apps_config.rasi")
         end,
         {description = "launch an app", group = "apps"}),
     awful.key({ superkey, ctrlkey }, "e", 
         function() 
-            awful.spawn.with_shell("rofi -show emoji -modi emoji")
+            awful.spawn("rofi -show emoji -modi emoji")
         end, 
         {description = "open emoji menu", group = "apps"}),
     -- }}}
