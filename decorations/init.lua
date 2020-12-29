@@ -13,9 +13,15 @@ local decorations = {}
 function decorations.enable_rounding()
     -- Apply rounded corners to clients if needed
     if beautiful.border_radius and beautiful.border_radius > 0 then
-        client.connect_signal("manage", function (c, startup)
-            if not c.fullscreen and not c.maximized then
-                c.shape = helpers.rrect(beautiful.border_radius)
+        -- No rounded corners if there is only one client (thanks, u/Imtechbum :))
+        screen.connect_signal("arrange", function (s)
+            local only_one_tiled = #s.tiled_clients == 1
+            for _, c in pairs(s.clients) do
+                if (only_one_tiled or c.maximized or c.fullscreen) and not c.floating then
+                    c.shape = gears.shape.rectangle
+                else
+                    c.shape = helpers.rrect(beautiful.border_radius)
+                end
             end
         end)
 
@@ -23,18 +29,6 @@ function decorations.enable_rounding()
     else
         beautiful.snap_shape = gears.shape.rectangle
     end
-
-    -- No rounded corners if there is only one client (thanks, u/Imtechbum :))
-    screen.connect_signal("arrange", function (s)
-        local only_one = #s.tiled_clients == 1
-        for _, c in pairs(s.tiled_clients) do
-            if only_one or c.maximized or c.fullscreen then
-                c.shape = gears.shape.rectangle
-            else
-                c.shape = helpers.rrect(beautiful.border_radius)
-            end
-        end
-    end)
 end
 
 local button_commands = {
