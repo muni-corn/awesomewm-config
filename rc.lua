@@ -119,61 +119,237 @@ awful.screen.connect_for_each_screen(function(s)
 end)
 -- }}}
 
+
+-- {{{ Get screen width, height
+function screen_width()  
+    return awful.screen.focused().geometry.width
+end
+function screen_height()  
+    return awful.screen.focused().geometry.height
+end
+-- }}}
+
 -- {{{ Rules
--- Rules to apply to new clients (through the "manage" signal).
+-- Determines how floating clients should be placed
+local floating_client_placement = function(c)
+    -- If the layout is floating or there are no other visible
+    -- clients, center client
+    if awful.layout.get(mouse.screen) ~= awful.layout.suit.floating or #mouse.screen.clients == 1 then
+        return awful.placement.centered(c,{honor_padding = true, honor_workarea=true})
+    end
+
+    -- Else use this placement
+    local p = awful.placement.no_overlap + awful.placement.no_offscreen
+    return p(c, {honor_padding = true, honor_workarea=true, margins = beautiful.useless_gap * 2})
+end
+
+local centered_client_placement = function(c)
+    return gears.timer.delayed_call(function ()
+        awful.placement.centered(c, {honor_padding = true, honor_workarea=true})
+    end)
+end
+
+-- Rules
 awful.rules.rules = {
-    -- All clients will match this rule.
-    { rule = { },
-      properties = { border_width = beautiful.border_width,
-                     border_color = beautiful.border_normal,
-                     focus = awful.client.focus.filter,
-                     raise = true,
-                     keys = keys.clientkeys,
-                     buttons = keys.clientbuttons,
-                     screen = awful.screen.preferred,
-                     placement = awful.placement.no_overlap+awful.placement.no_offscreen
-     }
+    {
+        -- All clients will match this rule.
+        rule = { },
+        properties = {
+            border_width = beautiful.border_width,
+            border_color = beautiful.border_normal,
+            focus = awful.client.focus.filter,
+            raise = true,
+            keys = keys.clientkeys,
+            buttons = keys.clientbuttons,
+            screen = awful.screen.focused,
+            size_hints_honor = false,
+            honor_workarea = true,
+            honor_padding = true,
+            maximized = false,
+            titlebars_enabled = beautiful.titlebars_enabled,
+            maximized_horizontal = false,
+            maximized_vertical = false,
+            placement = floating_client_placement
+        },
     },
 
-    -- Floating clients.
-    { rule_any = {
-        instance = {
-          "DTA",  -- Firefox addon DownThemAll.
-          "copyq",  -- Includes session name in class.
-          "pinentry",
+    -- Floating clients
+    {
+        rule_any = {
+            instance = {
+                "floating_terminal",
+                "Devtools",
+            },
+            class = {
+                "Gpick",
+                "Lxappearance",
+                "Nm-connection-editor",
+                "File-roller",
+                "fst",
+            },
+            name = {
+                "Event Tester",  -- xev
+                "MetaMask Notification",
+            },
+            role = {
+                "AlarmWindow",
+                "pop-up",
+                "GtkFileChooserDialog",
+                "conversation",
+            },
+            type = {
+                "dialog",
+            }
         },
-        class = {
-          "Arandr",
-          "Blueman-manager",
-          "Gpick",
-          "Kruler",
-          "MessageWin",  -- kalarm.
-          "Sxiv",
-          "Tor Browser", -- Needs a fixed window size to avoid fingerprinting by screen size.
-          "Wpa_gui",
-          "veromix",
-          "xtightvncviewer"},
+        properties = { floating = true }
+    },
 
-        -- Note that the name property shown in xprop might be set slightly after creation of the client
-        -- and the name shown there might not match defined rules here.
-        name = {
-          "Event Tester",  -- xev.
+    -- Centered clients
+    {
+        rule_any = {
+            type = {
+                "dialog",
+            },
+            class = {
+                "Steam",
+                "discord",
+                "music",
+            },
+            instance = {
+                "music",
+            },
+            role = {
+                "GtkFileChooserDialog",
+                "conversation",
+            }
         },
-        role = {
-          "AlarmWindow",  -- Thunderbird's calendar.
-          "ConfigManager",  -- Thunderbird's about:config.
-          "pop-up",       -- e.g. Google Chrome's (detached) Developer Tools.
+        properties = { placement = centered_client_placement },
+    },
+
+    -- Titlebars OFF (explicitly)
+    {
+        rule_any = {
+            type = {
+              "splash",
+              "modal"
+            },
+        },
+        callback = function(c)
+            awful.titlebar.hide(c)
+        end
+    },
+
+    -- Titlebars ON (explicitly)
+    {
+        rule_any = {
+            type = {
+                "dialog",
+            },
+            role = {
+                "conversation",
+            }
+        },
+        callback = function(c)
+            decorations.show(c)
+        end
+    },
+
+    -- Visualizer
+    {
+        rule_any = { class = { "Visualizer" } },
+        properties = {
+            floating = true,
+            maximized_horizontal = true,
+            sticky = true,
+            ontop = false,
+            skip_taskbar = true,
+            below = true,
+            focusable = false,
+            height = screen_height() * 0.40,
+            opacity = 0.6,
+            titlebars_enabled = false,
+        },
+        callback = function (c)
+            awful.placement.bottom(c)
+        end
+    },
+
+    -- File chooser dialog
+    {
+        rule_any = { role = { "GtkFileChooserDialog" } },
+        properties = { floating = true, width = screen_width() * 0.5, height = screen_height() * 0.75 }
+    },
+
+    -- Pavucontrol
+    {
+        rule_any = { class = { "Pavucontrol" } },
+        properties = { floating = true, width = screen_width() * 0.5, height = screen_height() * 0.75 }
+    },
+
+    -- Keepass
+    {
+        rule_any = { class = { "KeePassXC" } },
+        except_any = { name = { "KeePassXC-Browser Confirm Access" }, type = { "dialog" } },
+        properties = { floating = true, width = screen_width() * 0.5, height = screen_height() * 0.75, minimized = true },
+    },
+
+    -- Scratchpad
+    {
+        rule_any = {
+            instance = {
+                "scratchpad",
+                "markdown_input"
+            },
+            class = {
+                "scratchpad",
+                "markdown_input"
+            },
+        },
+        properties = {
+            skip_taskbar = false,
+            floating = true,
+            ontop = false,
+            minimized = true,
+            sticky = false,
+            width = screen_width() * 0.75,
+            height = screen_height() * 0.75
         }
-      }, properties = { floating = true }},
-
-    -- Add titlebars to normal clients and dialogs
-    { rule_any = {type = { "normal", "dialog" }
-      }, properties = { titlebars_enabled = true }
     },
 
-    -- Set Firefox to always map on the tag named "2" on screen 1.
-    -- { rule = { class = "Firefox" },
-    --   properties = { screen = 1, tag = "2" } },
+    -- Music clients (usually a terminal running ncmpcpp)
+    {
+        rule_any = {
+            class = {
+                "music",
+            },
+            instance = {
+                "music",
+            },
+        },
+        properties = {
+            floating = true,
+            width = screen_width() * 0.5,
+            height = screen_height() * 0.5
+        },
+    },
+
+    -- Image viewers
+    {
+        rule_any = {
+            class = {
+                "feh",
+                "Sxiv",
+            },
+        },
+        properties = {
+            floating = true,
+            width = screen_width() * 0.75,
+            height = screen_height() * 0.75
+        },
+        callback = function (c)
+            awful.placement.centered(c, { honor_padding = true, honor_workarea = true })
+        end
+    },
 }
 -- }}}
 
@@ -184,8 +360,8 @@ client.connect_signal("manage", function (c)
     if not awesome.startup then awful.client.setslave(c) end
 
     if awesome.startup
-      and not c.size_hints.user_position
-      and not c.size_hints.program_position then
+        and not c.size_hints.user_position
+        and not c.size_hints.program_position then
         -- Prevent clients from being unreachable after screen count changes.
         awful.placement.no_offscreen(c)
     end
