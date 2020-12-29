@@ -39,8 +39,7 @@ awful.spawn.with_line_callback("muse-status sub s -m plain -p '" .. colors.color
     end
 })
 
--- Creates a bar for every screen
-awful.screen.connect_for_each_screen(function(s)
+local function make_status_bar(s)
     -- Create a taglist for every screen
     s.mytaglist = awful.widget.taglist {
         screen  = s,
@@ -77,12 +76,28 @@ awful.screen.connect_for_each_screen(function(s)
             s.mytaglist,
             status_primary,
             status_secondary,
-            layout = wibox.layout.flex.horizontal
+            layout = wibox.layout.align.horizontal
         },
         right = dpi(8),
         widget = wibox.container.margin
     }
 
+    -- Makes a hitbox that raises the status bar ontop
+    local bar_auto_lower = function ()
+        s.taglist_box.ontop = false
+    end
+
+    s.bar_activator = wibox({ screen = s, width = s.geometry.width, height = 1, bg = "#00000000", visible = true, ontop = true })
+    awful.placement.top(s.bar_activator)
+    s.bar_activator:connect_signal("mouse::enter", function()
+        s.taglist_box.ontop = true
+    end)
+    s.taglist_box:connect_signal("mouse::leave", function ()
+        bar_auto_lower()
+    end)
+end
+
+local function make_app_dock(s)
     -- Create the dock wibox
     s.dock = awful.popup({
         -- Size is dynamic, no need to set it here
@@ -94,8 +109,8 @@ awful.screen.connect_for_each_screen(function(s)
         shape = helpers.rrect(beautiful.border_radius)
     })
 
-    local autohide = function ()
-            s.dock.visible = false
+    local dock_autohide = function ()
+        s.dock.visible = false
     end
 
     -- Initialize wibox activator
@@ -128,11 +143,12 @@ awful.screen.connect_for_each_screen(function(s)
     s.dock:connect_signal("property::width", adjust_dock)
 
     s.dock:connect_signal("mouse::leave", function ()
-        autohide()
+        dock_autohide()
     end)
-end)
+end
 
-awesome.connect_signal("elemental::dismiss", function()
-    local s = mouse.screen
-    s.dock.visible = false
+-- Creates a bar for every screen
+awful.screen.connect_for_each_screen(function(s)
+    make_status_bar(s)
+    make_app_dock(s)
 end)
