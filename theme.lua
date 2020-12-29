@@ -32,10 +32,8 @@ theme.fg_minimize   = colors.color8 .. unfocused_alpha
 theme.transparent   = "#00000000"
 
 -- Gaps
-theme.useless_gap   = dpi(8)
--- This could be used to manually determine how far away from the
--- screen edge the bars / notifications should be.
-theme.screen_margin = dpi(8)
+theme.useless_gap   = dpi(16)
+theme.screen_margin = dpi(16)
 
 -- Borders
 theme.border_width  = dpi(0)
